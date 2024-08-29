@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+
+struct r {
+    float rFilme;
+    float rSerie;
+};
+
+typedef struct r tResposta;
+
+struct p {
+    char *nome;
+    tResposta *respQuestionario;
+};
+
+typedef struct p tPessoa;
+
+void inicializarPessoas(tPessoa *pPessoa, char *vNomAux[], char *vNomAuxCont[], int i);
+int encontrarCompatibilidade(tPessoa *pPessoa, float limiar, char *pergNome, int n);
+float calcularDistancia(tPessoa *pessoa1, tPessoa *pessoa2);
+void exibe(tPessoa *pessoa);
+
+int main() {
+    int i, n;
+    float limiar;
+    tPessoa *pessoaV;
+    char *vNomAux[20] = {
+        "Alice", "Bruno", "Carla", "Diego",
+        "Eduardo", "Fernanda", "Gustavo", "Helena",
+        "Igor", "Juliana", "Karla", "Lucas",
+        "Mariana", "Nicolas", "Olivia", "Paulo",
+        "Aoko", "Rafael", "Silvia", "Tiago"
+    }, *vNomAuxCont[20] = {NULL}, pergNome[100];
+
+    printf("Quantas pessoas: ");
+    scanf("%d", &n);
+
+    pessoaV = (tPessoa *) malloc(n * sizeof(tPessoa));
+
+    for (i = 0; i < n; i++) {
+        inicializarPessoas(&pessoaV[i], vNomAux, vNomAuxCont, i);
+    }
+
+    for (i = 0; i < n; i++) {
+        exibe(&pessoaV[i]);
+        printf("\n");
+    }
+
+    printf("Insira limiar: ");
+    scanf("%f", &limiar);
+
+    printf("Insira o nome: ");
+    getchar();
+    gets(pergNome);
+    
+
+    encontrarCompatibilidade(pessoaV, limiar, pergNome, n);
+
+    for (i = 0; i < n; i++) {
+        free(pessoaV[i].nome);
+        free(pessoaV[i].respQuestionario);
+    }
+    free(pessoaV);
+
+    return 0;
+}
+
+void inicializarPessoas(tPessoa *pPessoa, char *vNomAux[], char *vNomAuxCont[], int i) {
+    int j = 0, k, l;
+    int repet;
+
+    while (j != 1) {
+        k = rand() % 20;
+
+        for (l = 0; l < i; l++) {
+            if (strcmp(vNomAux[k], vNomAuxCont[l]) == 0) {
+                repet = 1;
+                break;
+            }
+        }
+
+        if (l == i) {
+            j = 1;
+        }
+    }
+
+    vNomAuxCont[i] = vNomAux[k];
+
+    pPessoa->nome = (char *) malloc(strlen(vNomAux[k]) + 1);
+    strcpy(pPessoa->nome, vNomAux[k]);
+
+    pPessoa->respQuestionario = (tResposta *) malloc(sizeof(tResposta));
+    pPessoa->respQuestionario->rFilme = (float)(rand() % 11);
+    pPessoa->respQuestionario->rSerie = (float)(rand() % 11);
+}
+
+float calcularDistancia(tPessoa *pessoa1, tPessoa *pessoa2) {
+    return sqrt(pow(pessoa1->respQuestionario->rSerie - pessoa2->respQuestionario->rSerie, 2) + pow(pessoa1->respQuestionario->rFilme - pessoa2->respQuestionario->rFilme, 2));
+}
+
+int encontrarCompatibilidade(tPessoa *pPessoa, float limiar, char *pergNome, int n) {
+    int enc = 0, i, k;
+    float rLim;
+
+    for (i = 0; i < n; i++) {
+        if (strcmp(pPessoa[i].nome, pergNome) == 0) {
+            enc = 1;
+            k = i;
+            break;
+        }
+    }
+    if (enc == 0) {
+        return 0;
+    }
+
+    for (i = 0; i < n; i++) {
+        if (i != k) {
+            rLim = calcularDistancia(&pPessoa[k], &pPessoa[i]);
+            if (rLim <= limiar) {
+                printf("||%s|| é compatível com ||%s|| (Limiar de: %.2f)\n", pPessoa[k].nome, pPessoa[i].nome, rLim);
+            }
+        }
+    }
+    return 1;
+}
+
+void exibe(tPessoa *pessoa) {
+    printf("Nome: %s\t", pessoa->nome);
+    printf("Nota série: %.2f\t", pessoa->respQuestionario->rSerie);
+    printf("Nota filme: %.2f\t", pessoa->respQuestionario->rFilme);
+}
